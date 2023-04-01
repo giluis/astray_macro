@@ -1,11 +1,11 @@
 use astray_macro::AstNode;
 use astray_core::*;
 
+set_token!(Token);
 
 #[derive(AstNode, PartialEq)]
-#[token(Token)]
 pub struct KInt {
-    #[stateless_leaf(Token::KInt)]
+    #[from(Token::KInt)]
     kint: Token,
 }
 

@@ -5,16 +5,15 @@
 mod node_lib;
 
 
-use node_lib::node::{Node, NodeType};
+use node_lib::node::{Node,GENERAL_LEAF_TYPE,NodeType};
 use node_lib::branch::Branch;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
 use quote::*;
 
-const GENERAL_LEAF_TYPE: &str = "AstrayToken";
 
 
-#[proc_macro_derive(SN, attributes(token,stateless_leaf, stateful_leaf))]
+#[proc_macro_derive(SN, attributes(from, stateful_leaf))]
 #[allow(non_snake_case)]
 pub fn SN(input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as syn::DeriveInput);
@@ -47,7 +46,7 @@ pub fn set_token(input: TokenStream) ->TokenStream {
     let input: proc_macro2::TokenStream = input.into();
     let token_type_alias= syn::Ident::new(GENERAL_LEAF_TYPE, proc_macro2::Span::call_site());
     quote!{
-        type general_leaf_tpye = #input;
+        type #token_type_alias = #input;
     }.into()
 }
 

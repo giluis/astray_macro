@@ -6,6 +6,8 @@ use syn::DataStruct;
 use syn::DeriveInput;
 use syn::TypePath;
 
+pub const GENERAL_LEAF_TYPE: &str = "AstrayToken";
+
 #[derive(Debug)]
 pub enum NodeType {
     ProductNode,
@@ -20,12 +22,20 @@ pub struct Node {
     pub token_type_alias: syn::Ident,
 }
 
-fn get_attribute_args<T: syn::parse::Parse>(attribute_name: &str, derive_input: DeriveInput)-> Option<Result<T,String>> 
-{
-         match derive_input.attrs.iter().find(|attr| attr.path.segments[0].ident == attribute_name) {
-            Some(attr) => Some(attr.parse_args::<T>().map_err(|_|"#[token(...)] should contain a type, referring to the token being consumbed".to_string())),
-            None => None
-        }
+fn get_attribute_args<T: syn::parse::Parse>(
+    attribute_name: &str,
+    derive_input: DeriveInput,
+) -> Option<Result<T, String>> {
+    derive_input
+        .attrs
+        .iter()
+        .find(|attr| attr.path.segments[0].ident == attribute_name)
+        .map(|attr| {
+            attr.parse_args::<T>().map_err(|_| {
+                "#[token(...)] should contain a type, referring to the token being consumbed"
+                    .to_string()
+            })
+        })
 }
 
 impl Node {
@@ -41,12 +51,12 @@ impl Node {
             branches,
             node_type,
             ident: derive_input.ident,
-            token_type_alias
+            token_type_alias,
         }
     }
 
     #[allow(dead_code)]
-    pub fn from_item(item: syn::Item, token_type_alias:syn::Ident) -> Self {
+    pub fn from_item(item: syn::Item, token_type_alias: syn::Ident) -> Self {
         let (ident, branches, node_type) = match item {
             syn::Item::Enum(item_enum) => (
                 item_enum.ident,
@@ -83,7 +93,13 @@ impl Node {
     pub fn to_parse_fn(&self) -> proc_macro2::TokenStream {
         let node_name = &self.ident;
         let (consumption_statements, branch_idents) = self.to_consumption_statements();
-        let err_strings = self.branches.iter().map(|b|b.as_err_variable()).fold("".to_string(), |accum, curr_err| accum + ", " + &curr_err.to_string());
+        let err_strings = self
+            .branches
+            .iter()
+            .map(|b| b.as_err_variable())
+            .fold("".to_string(), |accum, curr_err| {
+                accum + ", " + &curr_err.to_string()
+            });
         let fn_body = match self.node_type {
             NodeType::SumNode => {
                 quote! {

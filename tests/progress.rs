@@ -6,10 +6,10 @@ fn tests() {
     t.pass("tests/struct/stateless_leaf.rs");
     // t.pass("tests/struct/stateful_leaf.rs");
     t.pass("tests/struct/ref.rs");
-    // t.pass("tests/struct/all_together.rs");
+    t.pass("tests/struct/all_together.rs");
 
-    // t.pass("tests/enum/one_variant.rs");
-    // t.pass("tests/enum/many_variants.rs");
+    t.pass("tests/enum/one_variant.rs");
+    t.pass("tests/enum/many_variants.rs");
     // t.pass("tests/enum/ref_to_enum.rs");
     // t.pass("tests/enum/enum_and_struct.rs");
 

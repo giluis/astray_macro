@@ -1,9 +1,9 @@
-use astray_macro::AstNode;
+use astray_macro::{set_token,SN};
 use astray_core::*;
 
 set_token!(Token);
 
-#[derive(AstNode, PartialEq)]
+#[derive(SN, PartialEq, Clone)]
 pub struct KInt {
     #[from(Token::KInt)]
     kint: Token,
@@ -21,7 +21,7 @@ fn main() {
     let tokens = vec![
         t!( int )
     ];
-    let mut iter = TokenIter::new(tokens.as_slice());
+    let mut iter = TokenIter::new(tokens);
     let result = KInt::parse(&mut iter);
     
     assert!(result.unwrap().kint == Token::KInt);

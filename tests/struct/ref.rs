@@ -6,12 +6,12 @@
 //   - Joining together the type name + "Builder" to make the builder's name:
 //     https://docs.rs/syn/1.0/syn/struct.Ident.html
 
-use astray_macro::AstNode;
+use astray_macro::{SN,set_token};
 use astray_core::*;
 
+set_token!(Token);
 
-#[derive(AstNode, PartialEq)]
-#[token(Token)]
+#[derive(SN, PartialEq, Clone)]
 pub struct AssignStatement {
     ty: Type,
 
@@ -28,21 +28,9 @@ pub struct AssignStatement {
     // omitted expression (fearing recursion)
 }
 
-// impl Parsable for AssignStatement  {
-//    fn parse(iter:&mut Iter) -> Result<AssignStatement, String> {
-//      let ty = iter.parse::<Type>()?;
-//
-//      Ok(AssignStatement {
-//          ty,
-//      })
-//      
-//    }
-// }
-
-#[derive(AstNode, PartialEq)]
-#[token(Token)]
+#[derive(SN, PartialEq,Clone)]
 pub struct Type {
-    #[stateless_leaf(Token::KInt)]
+    #[from(Token::KInt)]
     int: Token,
 }
 
@@ -64,9 +52,9 @@ pub struct Type {
 
 
 fn main() {
-    let tokens = [t!( int )];
+    let mut iter = TokenIter::new(vec![t!( int )]);
 
-    let result = AssignStatement::parse(&mut TokenIter::new(&tokens));
+    let result = iter.parse::<AssignStatement>();
     let expected = AssignStatement::new(Type::new(Token::KInt));
     assert!(Ok(expected) == result);
 }

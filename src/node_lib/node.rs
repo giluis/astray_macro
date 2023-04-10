@@ -22,24 +22,8 @@ pub struct Node {
     pub token_type_alias: syn::Ident,
 }
 
-fn get_attribute_args<T: syn::parse::Parse>(
-    attribute_name: &str,
-    derive_input: DeriveInput,
-) -> Option<Result<T, String>> {
-    derive_input
-        .attrs
-        .iter()
-        .find(|attr| attr.path.segments[0].ident == attribute_name)
-        .map(|attr| {
-            attr.parse_args::<T>().map_err(|_| {
-                "#[token(...)] should contain a type, referring to the token being consumbed"
-                    .to_string()
-            })
-        })
-}
-
 impl Node {
-    pub fn from_derive_input<'a>(derive_input: DeriveInput, token_type_alias: syn::Ident) -> Self {
+    pub fn from_derive_input(derive_input: DeriveInput, token_type_alias: syn::Ident) -> Self {
         let (branches, node_type) = match derive_input.data {
             syn::Data::Struct(data_struct) => {
                 (data_struct.fields.into_branches(), NodeType::ProductNode)
@@ -93,20 +77,18 @@ impl Node {
     pub fn to_parse_fn(&self) -> proc_macro2::TokenStream {
         let node_name = &self.ident;
         let (consumption_statements, branch_idents) = self.to_consumption_statements();
-        let err_strings = self
+        let err_variables: Vec<syn::Ident> = self
             .branches
             .iter()
             .map(|b| b.as_err_variable())
-            .fold("".to_string(), |accum, curr_err| {
-                accum + ", " + &curr_err.to_string()
-            });
+            .collect();
         let fn_body = match self.node_type {
             NodeType::SumNode => {
                 quote! {
                     #(
                         #consumption_statements;
                     )*
-                    return Err(format!("Could not parse any of the variants: {}", #err_strings));
+                    return Err(ParseError::from_disjunct_errors(Self::identifier(), iter.current, vec![#(#err_variables),*]));
                 }
             }
             NodeType::ProductNode => {

@@ -17,7 +17,7 @@ set_token!{Token}
 
 
 
-#[derive(SN, PartialEq)]
+#[derive(SN, PartialEq, Clone)]
 pub struct Identifier {}
 
 // impl Parsable for Identifier  {
@@ -32,7 +32,7 @@ fn main() {
     let tokens = vec![
         t!(ident "some_ident")
     ];
-    let result = Identifier::parse(&mut TokenIter::new(tokens.as_slice()));
+    let result = Identifier::parse(&mut TokenIter::new(tokens));
     assert!(result.is_ok())
 
 }

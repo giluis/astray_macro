@@ -18,27 +18,36 @@ impl Branch {
         node_name: &syn::Ident,
         node_type: &NodeType,
     ) -> proc_macro2::TokenStream {
-        let ty = &self.ty;
         let (consumption_fn_call, assignment_identifier) = match node_type {
             NodeType::SumNode => (
                 {
-                    let mut fn_call = self.terminality.as_disjunct_fn_call(node_name, &self.ident);
-                    fn_call.extend(quote! {.hatch()});
-                    fn_call
+                    let mut fn_calls = quote! {iter};
+                    fn_calls.extend(self.terminality.as_disjunct_fn_call(
+                        node_name,
+                        &self.ty,
+                        &self.ident,
+                    ));
+                    fn_calls
                 },
                 self.as_err_variable(),
             ),
             // TODO: remove this clone()
-            NodeType::ProductNode => (self.terminality.as_conjunct_fn_call(&self.ty), self.ident.clone()),
+            NodeType::ProductNode => (
+                {
+                    let mut fn_calls = quote! {iter};
+                    fn_calls.extend(self.terminality.as_conjunct_fn_call(&self.ty));
+                    fn_calls
+                },
+                self.ident.as_snake_case(),
+            ),
         };
-        quote! {let #assignment_identifier = #ty #consumption_fn_call?;}
+        quote! {let #assignment_identifier = #consumption_fn_call?;}
     }
 
-    pub fn as_err_variable(&self) -> syn::Ident  {
+    pub fn as_err_variable(&self) -> syn::Ident {
         // the preceding underscore is necessary to avoid unused_variable warnings
         format_ident!("_{}_err", &self.ident.as_snake_case())
     }
-
 }
 
 impl From<&syn::Field> for Branch {

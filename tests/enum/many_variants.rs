@@ -1,58 +1,53 @@
-use astray::AstNode;
-use hatch_result::ResultHatchExt;
-use parser::iter::TokenIter;
-use parser::parse::Parsable;
-use token::{t, Token};
+use astray_macro::{SN, set_token};
+use astray_core::*;
+use hatch_result::HatchResultExt;
 
-#[derive(AstNode, PartialEq)]
-#[token(Token)]
+set_token!(Token);
+
+#[derive(SN)]
 pub enum TestEnum {
     DoubleComma(DoubleComma),
 
-    #[stateless_leaf(Token::LiteralInt)]
+    #[from(Token::LiteralInt(ANY))]
     LitInt(Token),
 
-    #[stateless_leaf(Token::SemiColon)]
+    #[from(Token::SemiColon)]
     SemiColon(Token),
 }
 
-#[derive(AstNode, PartialEq)]
-#[token(Token)]
+impl TestEnum {
+    fn pparse(iter: &mut TokenIter) -> TestEnum {
+        let semi_err = if let Ok(result) = iter.expect(Token::SemiColon) && matches!(result, Token::SemiColon) {
+            return TestEnum::LitInt(result)
+        } else {
+            Err("Could not parse smiecolon")
+
+        };
+        
+        let litint_err = if let Ok(result) = iter.expect(Token::LiteralInt(())) && matches!(result, Token::SemiColon) {
+            return TestEnum::LitInt(result)
+        } else {
+            Err("Could not parse smiecolon")
+
+        };
+
+    }
+
+}
+
+
+#[derive(SN)]
 pub struct DoubleComma {
-    #[stateless_leaf(Token::Comma)]
+    #[from(Token::Comma)]
     comma1: Token,
 
-    #[stateless_leaf(Token::Comma)]
+    #[from(Token::Comma)]
     comma2: Token,
 }
 
-/// impl Parsable for Type  {
-///    
-/// fn parse(iter:&mut Iter) -> Result<TestEnum, String> {
-///           
-///    match iter.attempt::<DoubleComma>(){
-///         Ok(DoubleComma) => return Ok(TestEnum::DoubleComma(DoubleComma)),
-///         Err(_) => (),
-///
-///    };
-///    match iter.peek_token(Token::LitInt(Default::default())) {
-///         Ok(Token::LitInt(LitInt)) => {
-///             lreturn Ok(TestEnum::LitInt(LitInt))
-///         },
-///         Err(_) => (),
-///    };
-///    match iter.peek_token(Token::SemiColon) {
-///         Ok(Token::SemiColon) => {
-///             lreturn Ok(TestEnum::SemiColon(Token::SemiColon))
-///         },
-///         Err(_) => (),
-///    };
-///    return Err("could not parse any of the variants for this sum node".to_string())
-/// }
-///
 
 fn main() {
-    let mut tokens = TokenIter::new(&[t!(,), t!(,)]);
+    let mut tokens = TokenIter::new(vec![t!(,), t!(,)]);
     let result = TestEnum::parse(&mut tokens);
     match result {
         Ok(TestEnum::DoubleComma(DoubleComma {
@@ -62,5 +57,4 @@ fn main() {
         Ok(_) => panic!("Expect DoubleComma variant, but didn't get that "), // internal error: token should always be t! (int) when result is OK
         _ => panic!("Expecte Ok Result"),
     }
-    // assert!(currentBefore + 1 == iter.current );
 }

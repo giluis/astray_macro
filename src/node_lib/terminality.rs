@@ -3,27 +3,29 @@ use quote::*;
 #[derive(Debug)]
 pub enum BranchTerminality  {
     Reference(syn::Type),
-    StatelessLeaf { source: syn::TypePath },
+    StatelessLeaf { source: syn::Type },
 }
 
 impl  BranchTerminality  {
     pub fn as_conjunct_fn_call(&self, ty: &syn::Type)-> proc_macro2::TokenStream {
         match self {
             Self::StatelessLeaf  { source } =>  
-                    quote! { ::expect(iter,#source) },
+                    quote! { .expect(#source) },
             Self::Reference(_ty)  =>  
-                    quote! { ::parse(iter) }  
+                    quote! { .parse::<#ty>() }  
         }
     }
 
-    pub fn as_disjunct_fn_call(&self, node_name: &syn::Ident, branch_ident: &syn::Ident)-> proc_macro2::TokenStream {
+    pub fn as_disjunct_fn_call(&self, node_name: &syn::Ident, ty: &syn::Type, branch_ident: &syn::Ident)-> proc_macro2::TokenStream {
         match self {
-            Self::StatelessLeaf  { source } =>  
-                    quote! { ::expect(iter, #source)
-                             .map(|v| #node_name::#branch_ident(v)) },
             Self::Reference(_inner_ty)  =>  
-                    quote! { ::parse(iter)
-                             .map(|v| #node_name::#branch_ident(v)) }  
+                    quote! { .parse::<#ty>()
+                             .map(|v| #node_name::#branch_ident(v))
+                             .hatch() },
+            Self::StatelessLeaf  { source } =>  
+                    quote! { .expect(#source)
+                             .map(|v| #node_name::#branch_ident(v))
+                             .hatch() },
         }
     }
 
@@ -38,11 +40,11 @@ pub trait IntoBranchTerminality {
     {
         match self
             .get_attrs()
-            .find(|attr| /* attr.path.segments.len() == 1 && */ attr.path.segments[0].ident == "stateless_leaf")
+            .find(|attr| /* attr.path.segments.len() == 1 && */ attr.path.segments[0].ident == "from")
         {
             None => BranchTerminality::Reference(self.get_type()),
             Some(attr) => {        
-                let source = attr.parse_args::<syn::TypePath>()
+                let source = attr.parse_args::<syn::Type>()
                          .expect("Could not extract leaf source from attribute");
                 BranchTerminality::StatelessLeaf { source }
             }

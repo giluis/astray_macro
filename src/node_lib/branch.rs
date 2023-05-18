@@ -18,8 +18,8 @@ impl Branch {
         node_name: &syn::Ident,
         node_type: &NodeType,
     ) -> proc_macro2::TokenStream {
-        let (consumption_fn_call, assignment_identifier) = match node_type {
-            NodeType::SumNode => (
+        let consumption_fn_call = match node_type {
+            NodeType::SumNode => 
                 {
                     let mut fn_calls = quote! {iter};
                     fn_calls.extend(self.terminality.as_disjunct_fn_call(
@@ -28,18 +28,20 @@ impl Branch {
                         &self.ident,
                     ));
                     fn_calls
-                },
-                self.as_err_variable(),
-            ),
+                }
+            ,
             // TODO: remove this clone()
-            NodeType::ProductNode => (
+            NodeType::ProductNode => 
                 {
                     let mut fn_calls = quote! {iter};
                     fn_calls.extend(self.terminality.as_conjunct_fn_call(&self.ty));
                     fn_calls
                 },
-                self.ident.as_snake_case(),
-            ),
+        };
+        let assignment_identifier = if let NodeType::SumNode = node_type {
+            self.as_err_variable()
+        } else  {
+            self.ident.clone()
         };
         quote! {let #assignment_identifier = #consumption_fn_call?;}
     }

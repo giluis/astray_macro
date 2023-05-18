@@ -3,10 +3,10 @@ use astray_core::*;
 
 set_token!(Token);
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN)]
 pub struct KInt {
     #[from(Token::KInt)]
-    kint: Token,
+    kint: Token
 }
 
 // impl Parsable<Token>  for KInt  {

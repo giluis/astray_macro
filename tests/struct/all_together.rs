@@ -1,8 +1,7 @@
-use astray_macro::{set_token,SN};
 use astray_core::*;
-use std::default::Default;
+use astray_macro::{set_token, SN};
 
-set_token!{Token}
+set_token! {Token}
 
 #[derive(SN, PartialEq, Clone)]
 pub struct AssignStatement {
@@ -13,22 +12,21 @@ pub struct AssignStatement {
     #[from(Token::Assign)]
     equals_sign: Token,
 
-    value: LiteralInt
+    #[from(Token::LiteralInt(_))]
+    lit_int: Token,
 }
 
 #[derive(SN, PartialEq, Clone)]
 struct LiteralInt {
-    #[from( Token::LiteralInt(Default::default()) )]
-    ident: Token
+    #[from(Token::LiteralInt(_))]
+    ident: Token,
 }
-
 
 #[derive(SN, PartialEq, Clone)]
 struct Identifier {
-    #[from( Token::Identifier(Default::default()) )]
-    ident: Token
+    #[from(Token::Identifier(_))]
+    ident: Token,
 }
-
 
 #[derive(SN, PartialEq, Clone)]
 pub struct Type {
@@ -38,18 +36,20 @@ pub struct Type {
 
 fn main() {
     let mut iter = TokenIter::new(vec![
-            t!( int ),
-            t!( ident "var1" ),
-            t!( = ),
-            t!( litint 1999 ),
+        t!(int),
+        t!( ident "var1" ),
+        t!( = ),
+        t!( litint 1999 ),
     ]);
     let result = iter.parse::<AssignStatement>();
 
     let expected = AssignStatement::new(
         Type::new(Token::KInt),
-        Identifier{ident: Token::Identifier("var1".to_string())},
+        Identifier {
+            ident: Token::Identifier("var1".to_string()),
+        },
         Token::Assign,
-        LiteralInt {ident: Token::LiteralInt(1999)}
+        Token::LiteralInt(1999),
     );
     assert!(Ok(expected) == result);
 }

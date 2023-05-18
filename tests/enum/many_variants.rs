@@ -1,6 +1,6 @@
 use astray_macro::{SN, set_token};
 use astray_core::*;
-use hatch_result::HatchResultExt;
+use hatch_result::*; 
 
 set_token!(Token);
 
@@ -8,31 +8,11 @@ set_token!(Token);
 pub enum TestEnum {
     DoubleComma(DoubleComma),
 
-    #[from(Token::LiteralInt(ANY))]
+    #[from(Token::LiteralInt(_))]
     LitInt(Token),
 
     #[from(Token::SemiColon)]
     SemiColon(Token),
-}
-
-impl TestEnum {
-    fn pparse(iter: &mut TokenIter) -> TestEnum {
-        let semi_err = if let Ok(result) = iter.expect(Token::SemiColon) && matches!(result, Token::SemiColon) {
-            return TestEnum::LitInt(result)
-        } else {
-            Err("Could not parse smiecolon")
-
-        };
-        
-        let litint_err = if let Ok(result) = iter.expect(Token::LiteralInt(())) && matches!(result, Token::SemiColon) {
-            return TestEnum::LitInt(result)
-        } else {
-            Err("Could not parse smiecolon")
-
-        };
-
-    }
-
 }
 
 

@@ -12,7 +12,7 @@ impl BranchTerminality {
             Self::StatelessLeaf { source } => {
                 let pattern_string = quote! {#source}.to_string();
                 // TODO: remove uncecessary to string: string can be stored in binary
-                quote! { .expect_match(|x|matches!(x,#source), #pattern_string.to_string()) }},
+                quote! { .expect_msg(|x|matches!(x,#source), #pattern_string.to_string()) }},
             Self::Reference(_ty) => quote! { .parse::<#ty>() },
         }
     }
@@ -30,7 +30,7 @@ impl BranchTerminality {
             Self::StatelessLeaf { source } => {
                 let pattern_string = quote! {#source}.to_string();
                 // TODO: remove uncecessary to string: string can be stored in binary
-                quote! { .expect_match(|x|matches!(x,#source),#pattern_string.to_string())
+                quote! { .expect_msg(|x|matches!(x,#source),#pattern_string.to_string())
                 .map(|v| #node_name::#branch_ident(v))
                 .hatch() }
             }

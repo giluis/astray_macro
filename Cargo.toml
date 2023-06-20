@@ -1,6 +1,6 @@
 [package]
 name = "astray_macro"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 description = "Easily build AST from Rust structures"
 license = "MIT"
@@ -22,7 +22,7 @@ trybuild = { version = "1.0.49", features = ["diff"] }
 
 [dependencies]
 syn = { version ="1.0.82", features=["full", "extra-traits"] }
-astray_core = "0.1.8"
+astray_core = "0.1.14"
 quote = "1.0.16"
 convert_case = "0.6.0"
 proc-macro2 = "1.0.36"

@@ -9,28 +9,28 @@ pub struct AssignStatement {
 
     ident: Identifier,
 
-    #[from(Token::Assign)]
+    #[pattern(Token::Assign)]
     equals_sign: Token,
 
-    #[from(Token::LiteralInt(_))]
+    #[pattern(Token::LiteralInt(_))]
     lit_int: Token,
 }
 
 #[derive(SN, PartialEq, Clone)]
 struct LiteralInt {
-    #[from(Token::LiteralInt(_))]
+    #[pattern(Token::LiteralInt(_))]
     ident: Token,
 }
 
 #[derive(SN, PartialEq, Clone)]
 struct Identifier {
-    #[from(Token::Identifier(_))]
+    #[pattern(Token::Identifier(_))]
     ident: Token,
 }
 
 #[derive(SN, PartialEq, Clone)]
 pub struct Type {
-    #[from(Token::KInt)]
+    #[pattern(Token::KInt)]
     int: Token,
 }
 
@@ -43,13 +43,13 @@ fn main() {
     ]);
     let result = iter.parse::<AssignStatement>();
 
-    let expected = AssignStatement::new(
-        Type::new(Token::KInt),
-        Identifier {
+    let expected = AssignStatement{
+        ty: Type{int: Token::KInt},
+        ident: Identifier {
             ident: Token::Identifier("var1".to_string()),
         },
-        Token::Assign,
-        Token::LiteralInt(1999),
-    );
+        equals_sign: Token::Assign,
+        lit_int: Token::LiteralInt(1999),
+    };
     assert!(Ok(expected) == result);
 }

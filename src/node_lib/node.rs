@@ -1,4 +1,5 @@
 use super::branch::Branch;
+use proc_macro2::TokenStream;
 use quote::*;
 use std::iter::Peekable;
 use std::slice::Iter;
@@ -19,11 +20,46 @@ pub struct Node {
     pub node_type: NodeType,
     pub ident: syn::Ident,
     branches: Vec<Branch>,
-    pub token_type_alias: syn::Ident,
+}
+
+// /**
+//  *  impl Parsable<#Token> for #Type {
+//  *      fn parse(iter: &mut TokenIter) -> Result<#Type, ParseError<#Token>> {
+//  *          (
+//  *          // in case it is a struct Node
+//  *          let #field_name = iter.parse().map_err(|err| ParseError::from_conjunct_error(err))?;
+//  *          // in case it is an enum Node
+//  *          let #field_name ## _err = iter.parse()?.map(|result: #field_type |#Type::#field_name(result)).hatch()?;
+//  *          ) * // repeat for each field
+//  *          
+//  *          // if struct Node
+//  *          Ok(#Type {#(#field_name)*})
+//  *          // else if enum Node
+//  *          Err(ParseError::from_disjunct_errors(#(#field_name##_err)*))
+//  *      }
+//  * }
+// */
+
+pub fn gen_parsable_implementation(
+    derive_input: DeriveInput,
+    token_type_alias: syn::Ident,
+) -> TokenStream {
+    let node = Node::from_derive_input(derive_input);
+    let branch_consumption = node.as_consumption_statements();
+    let node_construction = node.as_construction_statement();
+    let node_ident = node.ident;
+    quote! {
+        impl Parsable<#token_type_alias> for #node_ident {
+            fn parse(iter: &mut TokenIter<#token_type_alias>) -> Result<#node_ident, ParseError<#token_type_alias>> {
+                #(#branch_consumption)*
+                #node_construction
+            }
+        }
+    }
 }
 
 impl Node {
-    pub fn from_derive_input(derive_input: DeriveInput, token_type_alias: syn::Ident) -> Self {
+    pub fn from_derive_input(derive_input: DeriveInput) -> Self {
         let (branches, node_type) = match derive_input.data {
             syn::Data::Struct(data_struct) => {
                 (data_struct.fields.into_branches(), NodeType::ProductNode)
@@ -35,103 +71,36 @@ impl Node {
             branches,
             node_type,
             ident: derive_input.ident,
-            token_type_alias,
         }
     }
 
-    #[allow(dead_code)]
-    pub fn from_item(item: syn::Item, token_type_alias: syn::Ident) -> Self {
-        let (ident, branches, node_type) = match item {
-            syn::Item::Enum(item_enum) => (
-                item_enum.ident,
-                item_enum.variants.into_branches(),
-                NodeType::SumNode,
-            ),
-            syn::Item::Struct(item_struct) => (
-                item_struct.ident,
-                item_struct.fields.into_branches(),
-                NodeType::ProductNode,
-            ),
-            _ => unimplemented!("AstNode does not (yet?) support this item"),
-        };
-        Node {
-            branches,
-            node_type,
-            ident,
-            token_type_alias,
-        }
-    }
-
-    pub fn to_consumption_statements(&self) -> (Vec<proc_macro2::TokenStream>, Vec<&syn::Ident>) {
+    pub fn as_consumption_statements(&self) -> Vec<TokenStream> {
         self.branches
             .iter()
-            .map(|b| {
-                (
-                    b.to_consumption_statement(&self.ident, &self.node_type),
-                    &b.ident,
-                )
+            .map(|b| match self.node_type {
+                NodeType::ProductNode => b.as_conjunct_consumption_statement(),
+                NodeType::SumNode => b.as_disjunct_consumption_statement(&self.ident),
             })
-            .unzip()
+            .collect()
     }
 
-    pub fn to_parse_fn(&self) -> proc_macro2::TokenStream {
-        let node_name = &self.ident;
-        let (consumption_statements, branch_idents) = self.to_consumption_statements();
-        let err_variables: Vec<syn::Ident> = self
-            .branches
-            .iter()
-            .map(|b| b.as_err_variable())
-            .collect();
-        let fn_body = match self.node_type {
-            NodeType::SumNode => {
-                quote! {
-                    #(
-                        #consumption_statements;
-                    )*
-                    return Err(ParseError::from_disjunct_errors(Self::identifier(), iter.current, vec![#(#err_variables),*]));
-                }
-            }
-            NodeType::ProductNode => {
-                quote! {
-                    #(#consumption_statements)*
-                    return Ok(#node_name{
-                        #(#branch_idents),*
-                    })
-                }
-            }
-        };
-        let consumable_token = &self.token_type_alias;
-        quote! {
-            fn parse(iter: & mut TokenIter<#consumable_token>) -> Result<#node_name,ParseError<#consumable_token>>
-            {
-                #fn_body
-            }
+    fn as_construction_statement(&self) -> TokenStream {
+        match self.node_type {
+            NodeType::ProductNode => self.as_conjunct_construction_statement(),
+            NodeType::SumNode => self.as_disjunct_construction_statement(),
         }
     }
 
-    pub fn to_newfn(&self) -> proc_macro2::TokenStream {
-        let node_ident = &self.ident;
-        let (args, instantiation_fields): (Vec<_>, Vec<_>) = self
-            .branches
-            .iter()
-            .map(|b| {
-                let fident = &b.ident;
-                let fty = &b.ty;
-                (
-                    quote! {
-                        #fident: #fty
-                    },
-                    quote! {#fident},
-                )
-            })
-            .unzip();
-        quote! {
-            fn new(#(#args),*) -> Self {
-                #node_ident {
-                #(#instantiation_fields),*
-                }
-            }
-        }
+    fn as_conjunct_construction_statement(&self) -> TokenStream {
+        let branches = self.branches.iter().map(|b| &b.ident);
+        let ident = &self.ident;
+        quote! {Ok(#ident{#(#branches,)*})}
+    }
+
+    fn as_disjunct_construction_statement(&self) -> TokenStream {
+        let branches = self.branches.iter().map(|b| b.as_err_variable());
+        let ty = &self.ident;
+        quote! {Err(ParseError::from_disjunct_errors::<#ty>(iter.current, vec![#(#branches,)*]))}
     }
 }
 

@@ -1,10 +1,20 @@
 use super::node::{Node, NodeType};
 use super::terminality::{BranchTerminality, IntoBranchTerminality};
 use convert_case::{Case, Casing};
-use proc_macro2::Span;
+use proc_macro2::{Span, TokenStream};
 use quote::*;
 use syn::spanned::Spanned;
 
+trait ChainQuote {
+    fn chain(self, tokens: TokenStream) -> TokenStream;
+}
+
+impl ChainQuote for TokenStream {
+    fn chain(mut self, tokens: TokenStream) -> TokenStream {
+        self.extend(tokens);
+        self
+    }
+}
 #[derive(Debug)]
 pub struct Branch {
     pub ident: syn::Ident,
@@ -13,42 +23,41 @@ pub struct Branch {
 }
 
 impl Branch {
-    pub fn to_consumption_statement(
-        &self,
-        node_name: &syn::Ident,
-        node_type: &NodeType,
-    ) -> proc_macro2::TokenStream {
-        let consumption_fn_call = match node_type {
-            NodeType::SumNode => 
-                {
-                    let mut fn_calls = quote! {iter};
-                    fn_calls.extend(self.terminality.as_disjunct_fn_call(
-                        node_name,
-                        &self.ty,
-                        &self.ident,
-                    ));
-                    fn_calls
-                }
-            ,
-            // TODO: remove this clone()
-            NodeType::ProductNode => 
-                {
-                    let mut fn_calls = quote! {iter};
-                    fn_calls.extend(self.terminality.as_conjunct_fn_call(&self.ty));
-                    fn_calls
+
+    pub fn as_conjunct_consumption_statement(&self) -> proc_macro2::TokenStream {
+            let ident = &self.ident;
+            quote! {let #ident = iter}
+            .chain(match &self.terminality {
+                BranchTerminality::LiteralParse => quote! {
+                    .parse()?;
                 },
-        };
-        let assignment_identifier = if let NodeType::SumNode = node_type {
-            self.as_err_variable()
-        } else  {
-            self.ident.clone()
-        };
-        quote! {let #assignment_identifier = #consumption_fn_call?;}
+                BranchTerminality::ParseIfMatch(pattern) => quote! {
+                    .parse_if_match(|input| matches!(input, #pattern))?;
+                },
+            })
+    }
+
+    pub fn as_disjunct_consumption_statement(&self, node_ident: &syn::Ident) -> proc_macro2::TokenStream {
+            let branch_err = self.as_err_variable();
+            let branch_ident = &self.ident;
+            quote! {let #branch_err = iter}
+            .chain(match &self.terminality {
+                BranchTerminality::LiteralParse => quote! {
+                    .parse()
+                },
+                BranchTerminality::ParseIfMatch(pattern) => quote! {
+                    .parse_if_match(|input| matches!(input, #pattern))
+                },
+            })
+            .chain(quote!{
+                    .map(#node_ident::#branch_ident)
+                    .hatch()?;
+            })
     }
 
     pub fn as_err_variable(&self) -> syn::Ident {
         // the preceding underscore is necessary to avoid unused_variable warnings
-        format_ident!("_{}_err", &self.ident.as_snake_case())
+        format_ident!("{}_err", &self.ident.as_snake_case())
     }
 }
 

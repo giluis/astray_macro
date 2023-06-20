@@ -4,24 +4,24 @@ use hatch_result::*;
 
 set_token!(Token);
 
-#[derive(SN)]
+#[derive(SN, PartialEq, Clone)]
 pub enum TestEnum {
     DoubleComma(DoubleComma),
 
-    #[from(Token::LiteralInt(_))]
+    #[pattern(Token::LiteralInt(_))]
     LitInt(Token),
 
-    #[from(Token::SemiColon)]
+    #[pattern(Token::SemiColon)]
     SemiColon(Token),
 }
 
 
-#[derive(SN)]
+#[derive(SN, PartialEq, Clone)]
 pub struct DoubleComma {
-    #[from(Token::Comma)]
+    #[pattern(Token::Comma)]
     comma1: Token,
 
-    #[from(Token::Comma)]
+    #[pattern(Token::Comma)]
     comma2: Token,
 }
 

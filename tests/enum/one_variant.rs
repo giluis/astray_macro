@@ -4,12 +4,10 @@ use hatch_result::ResultHatchExt;
 
 set_token!(Token);
 
-#[derive(SN)]
+#[derive(SN, Clone, PartialEq)]
 pub enum Type {
-
-    #[from( Token::KInt )]
+    #[pattern( Token::KInt )]
     KInt(Token),
-
 }
 
 fn main() {

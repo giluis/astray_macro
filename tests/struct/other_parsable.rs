@@ -11,20 +11,20 @@ use astray_core::*;
 
 set_token!(Token);
 
-#[derive(SN, PartialEq)]
+#[derive(SN, PartialEq, Clone)]
 pub struct AssignStatement {
     ty: Type,
 }
 
-#[derive(SN, PartialEq)]
+#[derive(SN, PartialEq, Clone)]
 pub struct Type {
-    #[from(Token::KInt)]
+    #[pattern(Token::KInt)]
     int: Token,
 }
 
 fn main() {
     let mut iter = TokenIter::new(vec![t!( int )]);
     let result = iter.parse::<AssignStatement>();
-    let expected = AssignStatement::new(Type::new(Token::KInt));
+    let expected = AssignStatement{ty: Type{int: Token::KInt}};
     assert!(Ok(expected) == result);
 }

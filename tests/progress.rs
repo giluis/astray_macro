@@ -3,9 +3,9 @@ fn tests() {
     let t = trybuild::TestCases::new();
     t.pass("tests/basic/mod.rs");
 
-    t.pass("tests/struct/stateless_leaf.rs");
-    // t.pass("tests/struct/stateful_leaf.rs");
-    t.pass("tests/struct/ref.rs");
+    t.pass("tests/struct/from_token.rs");
+    // // t.pass("tests/struct/stateful_leaf.rs");
+    t.pass("tests/struct/other_parsable.rs");
     t.pass("tests/struct/all_together.rs");
 
     t.pass("tests/enum/one_variant.rs");
@@ -13,7 +13,9 @@ fn tests() {
     t.pass("tests/enum/ref_to_enum.rs");
     t.pass("tests/enum/enum_and_struct.rs");
 
-    // t.pass("tests/std_types/optional.rs");
+    t.pass("tests/std_types/optional.rs");
+    t.pass("tests/std_types/vec.rs");
+    t.pass("tests/std_types/box.rs");
 
     // t.pass("tests/compiles.rs");
     // t.pass("tests/simple_leaf.rs");

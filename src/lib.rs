@@ -5,7 +5,7 @@
 mod node_lib;
 
 
-use node_lib::node::{Node,GENERAL_LEAF_TYPE,NodeType};
+use node_lib::node::{Node,gen_parsable_implementation,GENERAL_LEAF_TYPE,NodeType};
 use node_lib::branch::Branch;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput};
@@ -13,31 +13,15 @@ use quote::*;
 
 
 
-#[proc_macro_derive(SN, attributes(from, stateful_leaf))]
+#[proc_macro_derive(SN, attributes(pattern, stateful_leaf))]
 #[allow(non_snake_case)]
 pub fn SN(input: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(input as syn::DeriveInput);
     let token_type_alias= syn::Ident::new(GENERAL_LEAF_TYPE, proc_macro2::Span::call_site());
-    let node= Node::from_derive_input(derive_input,token_type_alias.clone());
-
-    let newfn = match node.node_type  {
-        NodeType::ProductNode =>  node.to_newfn(),
-        NodeType::SumNode => quote!(),
-    };
-
-    let parsefn =   node.to_parse_fn();
-    // println!("{:?}",node);
-    // println!("{}",parsefn);
-    let node_ident = &node.ident;
+    let node_impl =  gen_parsable_implementation(derive_input,token_type_alias);
+    println!("{}", node_impl);
     quote!{ 
-        impl Parsable<#token_type_alias> for #node_ident {
-            #parsefn
-        }
-
-        impl #node_ident {
-            #newfn
-        }
-
+        #node_impl
     }.into()
 }
 

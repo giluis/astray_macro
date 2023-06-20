@@ -3,48 +3,48 @@ use astray_core::*;
 
 set_token!{Token}
 
-#[derive(SN, Debug, PartialEq)]
+#[derive(SN, Clone, Debug, PartialEq)]
 pub struct FnCall {
-    #[from(Token::Identifier(_))]
+    #[pattern(Token::Identifier(_))]
     ident: Token,
     args: Args,
 }
 
-#[derive(SN, Debug, PartialEq)]
+#[derive(SN, Clone, Debug, PartialEq)]
 pub enum Args {
     EmptyArgs(EmptyArgs),
     FullArgs(FullArgs),
 }
 
-#[derive(SN, Debug, PartialEq)]
+#[derive(SN, Clone, Debug, PartialEq)]
 pub struct EmptyArgs {
-    #[from(Token::LParen)]
+    #[pattern(Token::LParen)]
     l_paren: Token,
 
-    #[from(Token::RParen)]
+    #[pattern(Token::RParen)]
     r_paren: Token,
 }
 
-#[derive(SN, Debug, PartialEq)]
+#[derive(SN, Clone, Debug, PartialEq)]
 pub struct FullArgs {
-    #[from(Token::LParen)]
+    #[pattern(Token::LParen)]
     l_paren: Token,
 
     ty1: ArgType,
 
-    #[from(Token::Identifier(_))]
+    #[pattern(Token::Identifier(_))]
     ident1: Token,
 
-    #[from(Token::RParen)]
+    #[pattern(Token::RParen)]
     r_paren: Token,
 }
 
-#[derive(SN, Debug, PartialEq)]
+#[derive(SN, Clone, Debug, PartialEq)]
 pub enum ArgType {
-    #[from(Token::KInt)]
+    #[pattern(Token::KInt)]
     KInt(Token),
 
-    #[from(Token::KFloat)]
+    #[pattern(Token::KFloat)]
     KFloat(Token),
 }
 

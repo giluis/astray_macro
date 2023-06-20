@@ -3,15 +3,15 @@ use astray_core::*;
 
 set_token!(Token);
 
-#[derive(SN)]
+#[derive(SN, Clone)]
 pub struct KInt {
-    #[from(Token::KInt)]
+    #[pattern(Token::KInt)]
     kint: Token
 }
 
 // impl Parsable<Token>  for KInt  {
 //    fn parse(iter:&mut TokenIter<Iter>) -> Result<KInt, String> {
-//      let kint = iter.expect(Token::KInt)?;
+//      let kint = iter.parse_if_match(|tok|matches!(tok,Token::KInt))?;
 //      Ok(Identifier{kint})
 //    }
 // }

@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 #![feature(let_chains)]
+#![feature(return_position_impl_trait_in_trait)]
 // #![feature(adt_const_params)]
 
 mod node_lib;

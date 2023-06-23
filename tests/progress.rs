@@ -12,6 +12,7 @@ fn tests() {
     t.pass("tests/enum/many_variants.rs");
     t.pass("tests/enum/ref_to_enum.rs");
     t.pass("tests/enum/enum_and_struct.rs");
+    t.pass("tests/enum/many_unit_variants.rs");
 
     t.pass("tests/std_types/optional.rs");
     t.pass("tests/std_types/vec.rs");

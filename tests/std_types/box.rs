@@ -35,9 +35,9 @@ impl Parsable<Token> for ParenthesizedExpression {
     type ApplyMatchTo = Self;
 
     fn parse(iter: &mut TokenIter<Token>) -> Result<Self, ParseError<Token>> {
-        let r: Token = iter.parse_if_match(|tok| matches!(tok, Token::LParen))?;
+        let _r: Token = iter.parse_if_match(|tok| matches!(tok, Token::LParen))?;
         let expr = iter.parse()?;
-        let l: Token = iter.parse_if_match(|tok| matches!(tok, Token::RParen))?;
+        let _l: Token = iter.parse_if_match(|tok| matches!(tok, Token::RParen))?;
         Ok(ParenthesizedExpression { expr })
     }
 }

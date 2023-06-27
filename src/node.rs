@@ -14,7 +14,7 @@ fn disjunct_all(variants: Punctuated<Variant, Comma>, node_ident: &syn::Ident) -
     let type_name = node_ident.to_string();
     quote! {
         #(#consumption_statements)*
-        Err(ParseError::from_disjunct_errors::<#node_ident>(iter.current, vec![#(#err_vars,)*], #type_name))
+        Err(ParseError::from_disjunct_errors(iter.current, vec![#(#err_vars,)*], #type_name))
     }
 }
 

@@ -11,10 +11,9 @@ fn get_token_type_alias() -> syn::Ident {
 fn disjunct_all(variants: Punctuated<Variant, Comma>, node_ident: &syn::Ident) -> TokenStream {
     let consumption_statements = variants.iter().map(|v| disjunct(v, node_ident));
     let err_vars = variants.iter().map(|v| v.ident.as_error_variable());
-    let type_name = node_ident.to_string();
     quote! {
         #(#consumption_statements)*
-        Err(ParseError::from_disjunct_errors(iter.current, vec![#(#err_vars,)*], #type_name))
+        Err(ParseError::from_disjunct_errors::<#node_ident>(iter.current, vec![#(#err_vars,)*]))
     }
 }
 
@@ -115,7 +114,8 @@ where
                 .parse_args::<syn::Pat>()
                 // TODO: Make sure error span is correct and type, field and incorrect pattern are mentioned in message
                 .expect("Incorrect pattern was provided");
-            quote!(iter.parse_if_match::<_,#type_specification>(|node| matches!(node, #pat)))
+            let pat_string = quote!{#pat}.to_string();
+            quote!(iter.parse_if_match::<_,#type_specification>(|node| matches!(node, #pat),Some(#pat_string))) 
         }
     }
 }

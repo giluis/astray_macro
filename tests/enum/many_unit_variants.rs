@@ -4,7 +4,7 @@ use astray_macro::{set_token, SN};
 
 set_token!(Token);
 
-#[derive(SN, PartialEq, Debug, Clone)]
+#[derive(SN, PartialEq, Debug)]
 pub enum Operator {
     #[pattern(Token::Plus)]
     Plus,

@@ -3,7 +3,7 @@ use astray_macro::{set_token, SN};
 
 set_token!(Token);
 
-#[derive(SN, PartialEq, Debug, Clone)]
+#[derive(SN, PartialEq, Debug)]
 pub enum TestEnum {
     DoubleComma(DoubleComma),
 
@@ -14,7 +14,7 @@ pub enum TestEnum {
     SemiColon,
 }
 
-#[derive(SN, PartialEq, Debug, Clone)]
+#[derive(SN, PartialEq, Debug)]
 pub struct DoubleComma {
     #[pattern(Token::Comma)]
     comma1: Token,

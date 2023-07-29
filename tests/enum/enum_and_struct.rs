@@ -3,20 +3,20 @@ use astray_core::*;
 
 set_token!{Token}
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub struct FnCall {
     #[pattern(Token::Identifier(_))]
     ident: Token,
     args: Args,
 }
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub enum Args {
     EmptyArgs(EmptyArgs),
     FullArgs(FullArgs),
 }
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub struct EmptyArgs {
     #[pattern(Token::LParen)]
     l_paren: Token,
@@ -25,7 +25,7 @@ pub struct EmptyArgs {
     r_paren: Token,
 }
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub struct FullArgs {
     #[pattern(Token::LParen)]
     l_paren: Token,
@@ -39,7 +39,7 @@ pub struct FullArgs {
     r_paren: Token,
 }
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub enum ArgType {
     #[pattern(Token::KInt)]
     KInt(Token),

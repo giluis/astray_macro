@@ -3,14 +3,14 @@ use astray_core::*;
 
 set_token!{Token}
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub enum Punct {
     #[pattern(Token::Assign)]
     EqualSign(Token), 
     SemiOrComma(SemiOrComma),
 }
 
-#[derive(SN, Clone, Debug, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub enum SemiOrComma {
     #[pattern(Token::Comma)]
     Comma(Token),

@@ -4,7 +4,7 @@ use hatch_result::ResultHatchExt;
 
 set_token!(Token);
 
-#[derive(SN, Clone, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub enum Type {
     #[pattern( Token::KInt )]
     KInt(Token),

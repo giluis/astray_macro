@@ -11,12 +11,12 @@ use astray_core::*;
 
 set_token!(Token);
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN, Debug, PartialEq, Clone)]
 pub struct AssignStatement {
     ty: Type,
 }
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN, Debug, PartialEq, Clone)]
 pub struct Type {
     #[pattern(Token::KInt)]
     int: Token,

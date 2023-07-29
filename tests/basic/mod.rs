@@ -3,7 +3,7 @@ use astray_macro::{SN, set_token};
 
 set_token!{Token}
 
-#[derive(SN, Clone, PartialEq)]
+#[derive(SN, Debug, PartialEq)]
 pub struct Identifier {}
 
 fn main() {

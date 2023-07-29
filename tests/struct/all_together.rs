@@ -3,7 +3,7 @@ use astray_macro::{set_token, SN};
 
 set_token! {Token}
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN, Debug, PartialEq)]
 pub struct AssignStatement {
     ty: Type,
 
@@ -16,19 +16,19 @@ pub struct AssignStatement {
     lit_int: Token,
 }
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN, Debug, PartialEq)]
 struct LiteralInt {
     #[pattern(Token::LiteralInt(_))]
     ident: Token,
 }
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN, Debug, PartialEq)]
 struct Identifier {
     #[pattern(Token::Identifier(_))]
     ident: Token,
 }
 
-#[derive(SN, PartialEq, Clone)]
+#[derive(SN, Debug, PartialEq)]
 pub struct Type {
     #[pattern(Token::KInt)]
     int: Token,

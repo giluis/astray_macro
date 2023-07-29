@@ -3,7 +3,7 @@ use astray_core::*;
 
 set_token!(Token);
 
-#[derive(SN, Clone)]
+#[derive(SN, PartialEq, Debug)]
 pub struct KInt {
     #[pattern(Token::KInt)]
     kint: Token

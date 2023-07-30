@@ -53,17 +53,19 @@ fn disjunct(variant: &Variant, node_ident: &syn::Ident) -> TokenStream {
         })
 }
 
-fn conjunct(field: &Field) -> TokenStream {
+fn conjunct(field: &Field, node_ident: &syn::Ident) -> TokenStream {
     let field_name = &field.ident;
     let parse_statement = as_branch_terminality(field, quote! {_});
-    quote! {let #field_name = #parse_statement}.chain(quote! {?;})
+    quote! {let #field_name = #parse_statement}
+        .chain(quote! {.map_err(|err|ParseError::from_conjunct_error::<#node_ident>(err))})
+        .chain(quote! {?;})
 }
 
 fn conjunct_all(fields: Fields, node_ident: &syn::Ident) -> TokenStream {
     let (consumption_statements, idents) = match fields {
         syn::Fields::Named(syn::FieldsNamed { ref named, .. }) => {
             (
-                named.pairs().map(|f| conjunct(f.into_value())),
+                named.pairs().map(|f| conjunct(f.into_value(), node_ident)),
                 named.pairs().map(|f| match f.into_value().ident {
                     Some(ref a) => a,
                     // TODO: improve this error message
@@ -114,8 +116,8 @@ where
                 .parse_args::<syn::Pat>()
                 // TODO: Make sure error span is correct and type, field and incorrect pattern are mentioned in message
                 .expect("Incorrect pattern was provided");
-            let pat_string = quote!{#pat}.to_string();
-            quote!(iter.parse_if_match::<_,#type_specification>(|node| matches!(node, #pat),Some(#pat_string))) 
+            let pat_string = quote! {#pat}.to_string();
+            quote!(iter.parse_if_match::<_,#type_specification>(|node| matches!(node, #pat),Some(#pat_string)))
         }
     }
 }
